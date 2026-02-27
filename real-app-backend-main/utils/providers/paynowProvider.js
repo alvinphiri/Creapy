@@ -127,7 +127,8 @@ const paynowProvider = {
     return {
       valid,
       transactionRef: formFields.reference,
-      status: formFields.status,
+      // Normalize status to lowercase for case-insensitive comparison
+      status: formFields.status ? formFields.status.toLowerCase() : formFields.status,
     };
   },
 };

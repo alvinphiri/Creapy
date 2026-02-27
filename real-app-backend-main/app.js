@@ -11,6 +11,7 @@ const userRouter = require("./routes/userRoutes");
 const savedSearchRouter = require("./routes/savedSearchRoutes");
 const paymentRouter = require("./routes/paymentRoutes");
 const uploadRouter = require("./routes/uploadRoutes");
+const webhookRouter = require("./routes/webhookRoutes");
 
 const listingRoutes = require("./routes/listingRoutes");
 
@@ -27,6 +28,7 @@ app.use(cors(corsOptions));
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
+app.use("/webhooks", webhookRouter);
 app.use(express.json({ limit: "10kb" }));
 
 app.use((req, res, next) => {

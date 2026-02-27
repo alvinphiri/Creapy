@@ -6,7 +6,19 @@ const router = express.Router();
 
 router.use(authController.protect);
 
-router.post("/premium", paymentController.createPremiumPayment);
-router.post("/landlord-subscription", paymentController.createPremiumPayment);
+router.post(
+  "/listing-fee",
+  authController.requireRole("landlord"),
+  paymentController.initiateListingFee
+);
+
+router.post(
+  "/tenant-premium",
+  authController.requireRole("tenant"),
+  paymentController.initiateTenantPremium
+);
+
+router.get("/mine", paymentController.getMyPayments);
 
 module.exports = router;
+

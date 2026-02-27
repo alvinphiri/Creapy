@@ -1,53 +1,92 @@
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const Payment = require("../models/paymentModel");
-const User = require("../models/userModel");
-const { MONETIZATION_MODE } = require("../utils/monetization");
+const Listing = require("../models/listingModel");
+const { getProvider } = require("../utils/paymentProvider");
 
-/**
- * Landlord subscription endpoint (MVP mock implementation).
- * Repeated successful calls are idempotent for paid status.
- */
-exports.createPremiumPayment = catchAsync(async (req, res, next) => {
-  if (!req.user) return next(new AppError("Not authenticated", 401));
+exports.initiateListingFee = catchAsync(async (req, res, next) => {
+  const { listingId, phone } = req.body;
 
-  if (MONETIZATION_MODE !== "LANDLORD_PAID") {
-    return next(new AppError("Payment flow not enabled for current monetization mode", 400));
+  // Find listing
+  const listing = await Listing.findById(listingId);
+  if (!listing) {
+    return next(new AppError("Listing not found", 404));
   }
 
-  if (req.user.role !== "landlord") {
-    return next(new AppError("Only landlords can subscribe to publish listings", 403));
+  // Check ownership
+  if (listing.user.toString() !== req.user._id.toString()) {
+    return next(new AppError("Forbidden", 403));
   }
 
-  const { amount, method, durationDays } = req.body;
-  const normalizedMethod = method || "mock";
-  const normalizedAmount = Number(amount || 0) || 0;
-  const now = new Date();
-  const days = Number(durationDays || 30);
-  const landlordPaidUntil = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  // Check status
+  if (listing.status !== "pending_payment") {
+    return next(new AppError("Listing is not awaiting payment", 400));
+  }
 
-  const payment = await Payment.create({
-    user: req.user._id,
-    amount: normalizedAmount,
-    method: normalizedMethod,
-    status: "success", // MVP: treat as successful
+  // Get provider and initiate payment
+  const provider = getProvider();
+  const result = await provider.initiateListingFee(listing, {
+    ...req.user.toObject(),
+    phone,
   });
 
-  const updated = await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      landlordPlan: "pro",
-      landlordPaidUntil,
+  // Create payment record
+  const payment = await Payment.create({
+    type: "listing_fee",
+    listing: listing._id,
+    user: req.user._id,
+    transactionRef: result.transactionRef,
+    status: "pending",
+    method: "paynow",
+    amount: parseFloat(process.env.LISTING_FEE_AMOUNT) || 0,
+  });
+
+  res.status(201).json({
+    status: "success",
+    data: {
+      transactionRef: result.transactionRef,
+      instructions: result.instructions,
     },
-    { new: true }
-  );
-  updated.password = undefined;
+  });
+});
+
+exports.initiateTenantPremium = catchAsync(async (req, res, next) => {
+  const { phone } = req.body;
+
+  // Get provider and initiate payment
+  const provider = getProvider();
+  const result = await provider.initiatePremiumSubscription({
+    ...req.user.toObject(),
+    phone,
+  });
+
+  // Create payment record
+  const payment = await Payment.create({
+    type: "premium_subscription",
+    user: req.user._id,
+    transactionRef: result.transactionRef,
+    status: "pending",
+    method: "paynow",
+    amount: parseFloat(process.env.TENANT_PREMIUM_AMOUNT) || 0,
+  });
+
+  res.status(201).json({
+    status: "success",
+    data: {
+      transactionRef: result.transactionRef,
+      instructions: result.instructions,
+    },
+  });
+});
+
+exports.getMyPayments = catchAsync(async (req, res, next) => {
+  const payments = await Payment.find({ user: req.user._id })
+    .sort({ createdAt: -1 })
+    .populate("listing", "name status");
 
   res.status(200).json({
     status: "success",
-    data: {
-      payment,
-      user: updated,
-    },
+    results: payments.length,
+    data: payments,
   });
 });
