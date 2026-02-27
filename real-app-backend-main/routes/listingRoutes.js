@@ -5,11 +5,12 @@ const listingController = require("../controllers/listingController");
 
 const router = express.Router();
 
-router.get("/", listingController.getListings);
-router.get("/get", listingController.getListings);
-router.get("/home/highlighted", listingController.getHomeHighlighted);
+router.get("/", authController.optionalAuth, listingController.getListings);
+router.get("/get", authController.optionalAuth, listingController.getListings);
+router.get("/home/highlighted", authController.optionalAuth, listingController.getHomeHighlighted);
 router.get(
   "/home/grouped-by-location",
+  authController.optionalAuth,
   listingController.getHomeGroupedByLocation
 );
 router.get("/listing/:id", listingController.getListing);

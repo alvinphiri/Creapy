@@ -6,6 +6,7 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const User = require("../models/userModel");
 const Listing = require("../models/listingModel");
+const { isPremiumTenant } = require("../utils/monetization");
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -178,6 +179,38 @@ exports.google = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.optionalAuth = catchAsync(async (req, res, next) => {
+  // 1) Getting token and check of it's there
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  // If no token, just continue without setting req.user
+  if (!token) {
+    return next();
+  }
+
+  try {
+    // 2) Verification token
+    const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+    // 3) Check if user still exists
+    const freshUser = await User.findById(decode.id);
+    if (freshUser) {
+      // GRANT ACCESS WITH USER CONTEXT
+      req.user = freshUser;
+    }
+    // If user doesn't exist, silently continue without setting req.user
+  } catch (err) {
+    // Swallow auth errors and continue without req.user
+  }
+  next();
+});
+
 exports.protect = catchAsync(async (req, res, next) => {
   // 1) Getting token and check of it's there
   let token;
@@ -225,7 +258,7 @@ exports.requireRole = (role) => {
 };
 
 exports.requirePremium = (req, res, next) => {
-  if (!req.user || !req.user.premiumStatus) {
+  if (!req.user || !isPremiumTenant(req.user)) {
     return next(
       new AppError("Premium feature. Please upgrade your account.", 402)
     );

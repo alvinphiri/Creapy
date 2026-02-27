@@ -6,6 +6,21 @@ const SavedSearch = require("../models/savedSearchModel");
 const User = require("../models/userModel");
 const { sendEmail } = require("../utils/email");
 const mongoose = require("mongoose");
+const { isPremiumTenant } = require("../utils/monetization");
+
+const promoteExpiredEarlyAccess = async () => {
+  // Update any early_access listings where earlyAccessUntil has passed to active
+  const now = new Date();
+  await Listing.updateMany(
+    {
+      status: "early_access",
+      earlyAccessUntil: { $lt: now },
+    },
+    {
+      $set: { status: "active" },
+    }
+  );
+};
 
 const normalizeListingPayload = (body) => {
   // Backwards compat: frontend may send regularPrice/discountedPrice.
@@ -120,7 +135,16 @@ exports.getListing = catchAsync(async (req, res, next) => {
     return next(new AppError("No listing found with that ID", 404));
   }
 
-  // 3) Send the response
+  // 3) Check visibility: conceal pending_payment and early_access (unless premium)
+  const isPremium = req.user ? isPremiumTenant(req.user) : false;
+  if (listing.status === "pending_payment") {
+    return next(new AppError("No listing found with that ID", 404));
+  }
+  if (listing.status === "early_access" && !isPremium) {
+    return next(new AppError("No listing found with that ID", 404));
+  }
+
+  // 4) Send the response
   res.status(200).json({
     status: "success",
     data: listing,
@@ -183,6 +207,9 @@ exports.updateListing = catchAsync(async (req, res, next) => {
 });
 
 exports.getListings = catchAsync(async (req, res, next) => {
+  // 0) Promote expired early_access listings to active
+  await promoteExpiredEarlyAccess();
+
   // 1) Pagination
   const page = req.query.page * 1 || 1;
   const limit = req.query.limit * 1 || 6;
@@ -207,8 +234,11 @@ exports.getListings = catchAsync(async (req, res, next) => {
     sort = { createdAt: 1 };
   }
 
-  // 3) Base filter: only active listings for public browsing
-  const filter = { status: "active" };
+  // 3) Base filter: determine premium status and set status filter accordingly
+  const isPremium = req.user ? isPremiumTenant(req.user) : false;
+  const filter = {
+    status: isPremium ? { $in: ["active", "early_access"] } : "active",
+  };
 
   // 3a) Text search (name/description)
   const searchTerm = (req.query.searchTerm || "").toString().trim();
@@ -284,9 +314,14 @@ exports.getListings = catchAsync(async (req, res, next) => {
 });
 
 exports.getHomeHighlighted = catchAsync(async (req, res, next) => {
-  const limit = Math.max(1, Number(req.query.limit) || 9);
+  // 0) Promote expired early_access listings to active
+  await promoteExpiredEarlyAccess();
 
-  const listings = await Listing.find({ status: "active" })
+  const limit = Math.max(1, Number(req.query.limit) || 9);
+  const isPremium = req.user ? isPremiumTenant(req.user) : false;
+  const statusFilter = isPremium ? { $in: ["active", "early_access"] } : "active";
+
+  const listings = await Listing.find({ status: statusFilter })
     .sort({ createdAt: -1 })
     .limit(limit);
 
@@ -298,15 +333,20 @@ exports.getHomeHighlighted = catchAsync(async (req, res, next) => {
 });
 
 exports.getHomeGroupedByLocation = catchAsync(async (req, res, next) => {
+  // 0) Promote expired early_access listings to active
+  await promoteExpiredEarlyAccess();
+
   const locationsLimit = Math.max(1, Number(req.query.locationsLimit) || 6);
   const perLocation = Math.max(1, Number(req.query.perLocation) || 6);
+  const isPremium = req.user ? isPremiumTenant(req.user) : false;
+  const statusFilter = isPremium ? { $in: ["active", "early_access"] } : "active";
 
   // Group active listings by a normalized location key (trim + lower-case),
   // then sort listings/groups by recency for the home location slider.
   const grouped = await Listing.aggregate([
     {
       $match: {
-        status: "active",
+        status: statusFilter,
         location: { $exists: true, $type: "string", $ne: "" },
       },
     },
