@@ -34,8 +34,6 @@ export const paymentApiSlice = apiSlice.injectEndpoints({
   }),
 });
 
-export const {
-  useGetMyPaymentsQuery,
-  useInitiateListingFeeMutation,
-  useInitiateTenantPremiumMutation,
-} = paymentApiSlice;
+export const { useGetMyPaymentsQuery } = paymentApiSlice;
+export const { useInitiateListingFeeMutation, useInitiateTenantPremiumMutation } =
+  paymentApiSlice;
