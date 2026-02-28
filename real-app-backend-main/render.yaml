@@ -1,17 +1,15 @@
 services:
   - type: web
     name: creapy-backend
-    env: node
+    runtime: node
     rootDir: real-app-backend-main
     buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
-        sync: false
       - key: PORT
         value: "5000"
-        sync: false
       - key: MONGO_URI
         sync: false
       - key: JWT_SECRET
