@@ -16,7 +16,7 @@ router.use(authController.protect);
 router.post(
   "/listing-fee",
   authController.requireRole("landlord"),
-  listingFeeValidators,
+  ...listingFeeValidators,
   validate,
   paymentController.initiateListingFee
 );
@@ -24,7 +24,7 @@ router.post(
 router.post(
   "/tenant-premium",
   authController.requireRole("tenant"),
-  tenantPremiumValidators,
+  ...tenantPremiumValidators,
   validate,
   paymentController.initiateTenantPremium
 );

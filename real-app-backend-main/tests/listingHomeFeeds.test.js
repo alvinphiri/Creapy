@@ -39,6 +39,8 @@ test("getHomeHighlighted returns active listings with default limit", async () =
   let capturedFilter = null;
   let capturedSort = null;
   let capturedLimit = null;
+
+  // stub updateMany to avoid DB requirement
   Listing.updateMany = async () => ({ modifiedCount: 0 });
 
   Listing.find = (filter) => {

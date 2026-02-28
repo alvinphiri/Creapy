@@ -1,0 +1,60 @@
+services:
+  - type: web
+    name: creapy-backend
+    env: node
+    rootDir: real-app-backend-main
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+        sync: false
+      - key: PORT
+        value: "5000"
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        sync: false
+      - key: MONETIZATION_MODE
+        sync: false
+      - key: PAYMENT_PROVIDER
+        sync: false
+      - key: PAYNOW_INTEGRATION_ID
+        sync: false
+      - key: PAYNOW_INTEGRATION_KEY
+        sync: false
+      - key: PAYNOW_RESULT_URL
+        sync: false
+      - key: PAYNOW_RETURN_URL
+        sync: false
+      - key: LISTING_FEE_AMOUNT
+        sync: false
+      - key: TENANT_PREMIUM_AMOUNT
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_SECURE
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_PUBLIC_BASE_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false

@@ -26,7 +26,7 @@ router.use(authController.protect);
 router.post(
   "/",
   authController.requireRole("landlord"),
-  createListingValidators,
+  ...createListingValidators,
   validate,
   listingController.createListing
 );

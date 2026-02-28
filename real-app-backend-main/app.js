@@ -17,12 +17,13 @@ const { globalLimiter } = require("./middleware/rateLimiter");
 const listingRoutes = require("./routes/listingRoutes");
 
 const corsOptions = {
-  origin: "*",
+  origin: process.env.FRONTEND_URL || "*",
   methods: "*",
   allowedHeaders: "*",
 };
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(cors(corsOptions));
 app.use(globalLimiter);
 
