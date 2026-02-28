@@ -1,7 +1,7 @@
 // React Imports
 import { useParams } from "react-router-dom";
 // MUI Imports
-import { Box, Grid, Divider } from "@mui/material";
+import { Box, Grid, Divider, Chip } from "@mui/material";
 // Swiper Imports
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore from "swiper";
@@ -149,7 +149,28 @@ const ViewListing = () => {
                         </Box>
                       </>
                     )}
+                    {data?.data?.status === "early_access" ? (
+                      <Chip label="Early Access" color="info" size="small" />
+                    ) : null}
                   </Box>
+                  {data?.data?.status === "early_access" ? (
+                    <Box
+                      sx={{
+                        fontSize: "13px",
+                        color: "text.secondary",
+                        marginTop: 1,
+                      }}
+                    >
+                      {data?.data?.earlyAccessUntil &&
+                      new Date(data.data.earlyAccessUntil) > new Date()
+                        ? `This listing is available exclusively to Premium members for the next ${Math.ceil(
+                            (new Date(data.data.earlyAccessUntil).getTime() -
+                              Date.now()) /
+                              3_600_000
+                          )} hours.`
+                        : "This listing is in Early Access."}
+                    </Box>
+                  ) : null}
 
                   <Box sx={{ marginTop: 1 }}>
                     <SubHeading>Description</SubHeading>

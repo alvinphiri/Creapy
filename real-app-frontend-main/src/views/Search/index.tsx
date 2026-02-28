@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import {
   Box,
   Grid,
+  Chip,
   RadioGroup,
   FormControlLabel,
   Radio,
@@ -27,6 +28,7 @@ import {
   selectedSearchText,
   setSearchText,
 } from "../../redux/global/globalSlice";
+import { selectedUserToken } from "../../redux/auth/authSlice";
 // React Icons
 import { FaLocationDot } from "react-icons/fa6";
 import { FaBed } from "react-icons/fa";
@@ -66,6 +68,7 @@ const SearchPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const searchText = useTypedSelector(selectedSearchText);
+  const token = useTypedSelector(selectedUserToken);
 
   const [sideBarData, setSideBarData] = useState<any>({
     searchTerm: "",
@@ -88,6 +91,7 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
   const [listings, setListings] = useState<any>([]);
   const [showMore, setShowMore] = useState(false);
+  const locationSearch = window.location.search;
 
   const handleSearch = (event: any) => {
     let value = event.target.value.toLowerCase();
@@ -96,7 +100,7 @@ const SearchPage = () => {
   };
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(locationSearch);
     const searchTermFromUrl = urlParams.get("searchTerm");
     const typeFromUrl = urlParams.get("type");
     const parkingFromUrl = urlParams.get("parking");
@@ -142,9 +146,9 @@ const SearchPage = () => {
       setLoading(true);
       setShowMore(false);
       const searchQuery = urlParams.toString();
-      const res = await fetch(
-        `${process.env.REACT_APP_API_URL}listings/get?${searchQuery}`
-      );
+      const res = await fetch(`${process.env.REACT_APP_API_URL}listings/get?${searchQuery}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
       const data = await res.json();
       if (data?.data?.length > 5) {
         setShowMore(true);
@@ -156,8 +160,7 @@ const SearchPage = () => {
     };
 
     fetchListings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [window.location.search]);
+  }, [locationSearch, token]);
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
@@ -184,9 +187,9 @@ const SearchPage = () => {
     const urlParams = new URLSearchParams(window.location.search);
     urlParams.set("page", (page + 1).toString());
     const searchQuery = urlParams.toString();
-    const res = await fetch(
-      `${process.env.REACT_APP_API_URL}listings/get?${searchQuery}`
-    );
+    const res = await fetch(`${process.env.REACT_APP_API_URL}listings/get?${searchQuery}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
     const data = await res.json();
     if (data?.data?.length < 6) {
       setShowMore(false);
@@ -459,6 +462,20 @@ const SearchPage = () => {
                               transition: "transform 0.3s ease",
                             }}
                           />
+                          {item?.status === "early_access" ? (
+                            <Chip
+                              label="Early Access"
+                              color="info"
+                              size="small"
+                              sx={{
+                                position: "absolute",
+                                top: 8,
+                                left: 8,
+                                zIndex: 1,
+                                pointerEvents: "none",
+                              }}
+                            />
+                          ) : null}
                         </Box>
                         <Box sx={{ padding: "18px 16px" }}>
                           <SubHeading

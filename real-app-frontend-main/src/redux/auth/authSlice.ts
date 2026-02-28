@@ -42,3 +42,5 @@ export const selectedUserRole = (state: RootState) =>
 
 export const selectedUserPremiumExpiry = (state: RootState) =>
   state.auth?.user?.data?.user?.premiumExpiry;
+
+export const selectedUserToken = (state: RootState) => state.auth?.user?.token;

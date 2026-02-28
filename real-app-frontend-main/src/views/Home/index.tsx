@@ -1,5 +1,5 @@
 // MUI Imports
-import { Box, Grid } from "@mui/material";
+import { Box, Grid, Chip } from "@mui/material";
 // React Imports
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -281,6 +281,7 @@ const Home = () => {
                                   sx={{
                                     height: { xs: 140, sm: 160, md: 180 },
                                     overflow: "hidden",
+                                    position: "relative",
                                     borderRadius: "12px",
                                     background: "#e2e8f0",
                                   }}
@@ -292,6 +293,20 @@ const Home = () => {
                                       height="100%"
                                       width="100%"
                                       style={{ objectFit: "cover" }}
+                                    />
+                                  ) : null}
+                                  {item?.status === "early_access" ? (
+                                    <Chip
+                                      label="Early Access"
+                                      color="info"
+                                      size="small"
+                                      sx={{
+                                        position: "absolute",
+                                        top: 8,
+                                        left: 8,
+                                        zIndex: 1,
+                                        pointerEvents: "none",
+                                      }}
                                     />
                                   ) : null}
                                 </Box>
@@ -388,6 +403,20 @@ const Home = () => {
                             transition: "transform 0.3s ease",
                           }}
                         />
+                        {item?.status === "early_access" ? (
+                          <Chip
+                            label="Early Access"
+                            color="info"
+                            size="small"
+                            sx={{
+                              position: "absolute",
+                              top: 8,
+                              left: 8,
+                              zIndex: 1,
+                              pointerEvents: "none",
+                            }}
+                          />
+                        ) : null}
                       </Box>
                       <Box sx={{ padding: "18px 16px" }}>
                         <SubHeading
@@ -557,6 +586,20 @@ const Home = () => {
                           transition: "transform 0.3s ease",
                         }}
                       />
+                      {item?.status === "early_access" ? (
+                        <Chip
+                          label="Early Access"
+                          color="info"
+                          size="small"
+                          sx={{
+                            position: "absolute",
+                            top: 8,
+                            left: 8,
+                            zIndex: 1,
+                            pointerEvents: "none",
+                          }}
+                        />
+                      ) : null}
                     </Box>
                     <Box sx={{ padding: "18px 16px" }}>
                       <SubHeading
@@ -720,6 +763,20 @@ const Home = () => {
                           transition: "transform 0.3s ease",
                         }}
                       />
+                      {item?.status === "early_access" ? (
+                        <Chip
+                          label="Early Access"
+                          color="info"
+                          size="small"
+                          sx={{
+                            position: "absolute",
+                            top: 8,
+                            left: 8,
+                            zIndex: 1,
+                            pointerEvents: "none",
+                          }}
+                        />
+                      ) : null}
                     </Box>
                     <Box sx={{ padding: "18px 16px" }}>
                       <SubHeading
