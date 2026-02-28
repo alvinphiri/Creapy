@@ -53,7 +53,11 @@ const TenantDashboard = () => {
   const [initiateTenantPremium, { isLoading: isInitiatingPremium }] =
     useInitiateTenantPremiumMutation();
 
-  const premiumAmount = process.env.REACT_APP_TENANT_PREMIUM_AMOUNT || "10";
+  const premiumAmountRaw = process.env.REACT_APP_TENANT_PREMIUM_AMOUNT || "10";
+  const premiumAmountNumber = Number(premiumAmountRaw);
+  const premiumAmountDisplay = Number.isFinite(premiumAmountNumber)
+    ? premiumAmountNumber.toFixed(2)
+    : "10.00";
   const premiumActive = isPremiumTenant({ premiumExpiry });
   const daysRemaining = premiumExpiry
     ? Math.ceil((new Date(premiumExpiry).getTime() - Date.now()) / 86_400_000)
@@ -210,7 +214,10 @@ const TenantDashboard = () => {
           {showPaymentForm ? (
             <Box sx={{ marginTop: "12px" }}>
               <Typography color="text.secondary" sx={{ marginBottom: "10px" }}>
-                USD {premiumAmount} / 30 days
+                Premium price: USD {premiumAmountDisplay}
+              </Typography>
+              <Typography color="text.secondary" sx={{ marginBottom: "10px" }}>
+                Duration: 30-day membership
               </Typography>
               {showPolling ? (
                 <Box

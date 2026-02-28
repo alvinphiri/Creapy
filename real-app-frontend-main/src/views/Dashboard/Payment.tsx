@@ -32,6 +32,7 @@ const ListingPayment = () => {
   const [phone, setPhone] = useState("");
   const [transactionRef, setTransactionRef] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [countdown, setCountdown] = useState(5);
   const [toast, setToast] = useState({
     message: "",
     appearence: false,
@@ -67,6 +68,19 @@ const ListingPayment = () => {
 
       return () => clearTimeout(timer);
     }
+  }, [uiState]);
+
+  useEffect(() => {
+    if (uiState !== "polling") {
+      setCountdown(5);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setCountdown((prev) => (prev <= 1 ? 5 : prev - 1));
+    }, 1000);
+
+    return () => clearInterval(intervalId);
   }, [uiState]);
 
   const handleCloseToast = () => {
@@ -264,7 +278,7 @@ const ListingPayment = () => {
               color="text.disabled"
               sx={{ marginTop: "12px" }}
             >
-              Checking status every 5 seconds...
+              Checking status in {countdown}s...
             </Typography>
           </AppCard>
         ) : null}
